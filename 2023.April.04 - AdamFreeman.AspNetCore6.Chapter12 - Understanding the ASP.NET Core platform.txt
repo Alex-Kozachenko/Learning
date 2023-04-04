@@ -1,0 +1,288 @@
+using "2023.April.04";
+using "AdamFreeman.AspNetCore6.Chapter12"; // Understanding the ASP.NET Core platform.
+
+1. Understanding the entry point
+2. Understanding the HttpContext
+3. Creating Custom Middleware
+4. Defining Middleware Using a Class
+
+5. Understanding the Return Pipeline Path
+6. Short-Circuiting the Request Pipeline
+7. Creating Pipeline Branches
+8. Creating Terminal Middleware
+
+9. Configuring middleware
+
+//////////////////////////////////////////////////////////////////////
+// Understanding the ASP.Net Core Project - Understanding the entry point
+
+// WebApplication.CreateBuilder
+//  Sets up the basic features of the platform, including
+//  - logging service (ch15)
+//  - data configuration (ch15).
+//  Also, sets up the HTTP server (Kestrel).
+//  Returns WebApplicationBuilder which is used to register additional services.
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+// Finalizes the initial setup.
+// Returns WebApplication object, which is used to set up middleware components.
+WebApplication app = builder.Build(); // Finalize the initial setup.
+
+// WebApplication implements the IEndpointRouteBuilder, 
+// sets up a funciton that will handle HTTP requests with a specified URL path.
+app.MapGet("/", () => "Hello World");
+
+// Start listening.
+app.Run();
+
+//////////////////////////////////////////////////////////////////////
+// Understanding the HttpContext
+
+// Describes the HTTP request and the HTTP response,
+//  and provides additional context,
+//  including details of the user associated with the request.
+// Essential members are:
+// - Connection					Returns ConnectionInfo object that provides network (HTTP) details.
+// - Request						Returns HttpRequest object that describes the HTTP request.
+// - RequestServices		Provides access to the services (DI-Container). (See 14)
+// - Response						Returns HttpResponse object that is used to create a response to the HTTP request.
+// - Session						Provides a session data associated with request. (See 16)
+// - User								Provides a user data (info, details) associated with request. (See 37 38)
+// - Features						Provides access to request features, which allow access to low-level aspect of request-handling (?) (See 16)
+HttpContext context;
+
+// The platform itself is all HTTP I/O across Internet.
+// So the `HttpRequest` is most important part of the context.
+// Lets see its members:
+// - Body								A stream that can be used to read request body.
+// - ContentLength			An HTTP header 'Content-Length'.
+// - ContentType				An HTTP header `Content-Type`.
+// - Form								Returns 'Body' as a form. (Key-value?).
+// - Cookies						-
+// - Headers						-
+// - IsHttps						-
+// - Method							HTTP verb.
+// - Path								Path section of request URL.
+// - Query							Query section of request URL. As Key-Value pairs.
+HttpRequest request = context.HttpRequest;
+
+// The `HttpResponse` object describes the HTTP response
+//  that will be sent back to the client
+//  after finishing the entire pipeline.
+// - ContentLength			`Content-Length` response header.
+// - ContentType				`Content-Type` response header.
+// - Cookies						-
+// - HasStarted					Is readonly. (Indicates that response is already going to the client, so its unchangable).
+// - Headers						-
+// - StatusCode					-
+// - WriteAsync(data)		Writes data to resposne body.
+// - Redirect(url)			Sends a redirection response.
+HttpResponse response = context.HttpResponse;
+
+// NOTE: Setting the Response Content-Type is important
+//  so the platform wont let to overwrite the Headers or StatusCode in any further middlewares.
+
+//////////////////////////////////////////////////////////////////////
+// Creating Custom Middleware
+app.Use(async (context, next) => {
+	if (context.Request.Method == HttpMethods.Get)
+	{
+		context.Response.ContentType = "text/plain";
+		await context.Response.WriteAsync("Custom middleware");
+	}
+	await next();
+});
+
+
+//////////////////////////////////////////////////////////////////////
+// Defining Middleware Using a Class
+
+// Making a lambda-middleware could be inconvinient for big stuff.
+// So, how to make a separate entity gracefully?
+
+// Via the dedicated class with specific signature
+public class QueryStringMiddleWare {
+        private RequestDelegate nextDelegate;
+        
+        // a ctor with `RequestDelegate` as parameter.
+        public QueryStringMiddleWare(RequestDelegate nextDelegate) {
+            this.nextDelegate = nextDelegate;
+        }
+        
+        // The Invoke method.
+        public async Task Invoke(HttpContext context) {
+		        // pass the control further down the pipeline.
+            await nextDelegate(context); 
+        }
+	}
+	
+// Class-based middleware components are added via app.UseMiddleware.
+app.UseMiddleware<QueryStringMiddleWare>();
+
+//////////////////////////////////////////////////////////////////////
+// Understanding the Return Pipeline Path
+
+// The request pipeline goes down to the endpoint and then up to the output, by its design.
+// How to hook-up to the output path?
+
+app.Use(async (context, next) => 
+{
+  // just pass to next middleware.
+	await next();
+	
+	// here the pipeline goes back.
+	var statusCode = context.Response.StatusCode;
+	await context.Response.WriteAsync($"Status code: {statusCode}");
+});
+
+//////////////////////////////////////////////////////////////////////
+// Short-Circuiting the Request Pipeline
+
+// How to interrupt the pipeline on current middleware?
+// Just dont call next()
+// So the platfrom gonna abandon further processing 
+//  for this request 
+//  and will pop up the response immediately 
+//  (all way back to middlewares up there).
+
+bool shallPass = false;
+app.Use(async (context, next) =>
+{
+	Console.WriteLine("Hi.");
+	await next();
+	Console.WriteLine("Bye.");
+});
+
+app.Use(async (context, next) =>
+{
+	if (shallPass) 
+	{
+		await	next();
+  }
+  else
+  {
+		Console.WriteLine("You shall not pass!");
+	}
+});
+
+// Output: Hi. You shall not pass! Bye.
+// Note: set `shallPass` to true so the chain will proceed further.
+
+//////////////////////////////////////////////////////////////////////
+// Creating Pipeline Branches
+
+// How to create a different, dedicated pipeline branch
+//  with its own blackjack and middlewares?
+// The `IApplicationBuilder.Map` allows this.
+
+((IApplicationBuilder)app).Map("/branch", branch => 
+{
+	branch.UseMiddleware<SomeBranchMiddleware>();
+	branch.Use(async (context, next) => {
+		await context.Resposne.WriteAsync("Hi branch!");
+		// next() // call it if you want to pass beyond this branch to default pipeline.
+	});
+});
+
+// NOTE: there is also a `MapWhen` method.
+
+//////////////////////////////////////////////////////////////////////
+// Creating Terminal Middleware
+
+// A terminal is always a dead-end for a pipeline,
+//  so there is no further request-processing
+//  so the pipeline goes back to response.
+// The previous `/branch` middleware is a Terminal
+//  since it doesn't call the `next()`.
+// The other way, more descriptive one,
+//  is the `app.Run()` method.
+branch.Run(async (context) => 
+{
+	await context.Response.WriteAsync("Dead end");
+	// no next() here. At all.
+});
+
+// Class middelware component could be written
+//  in order to support a duo-mode:
+//  the terminal and regular middleware
+//  as well.
+class AdvancedMiddleware
+{
+	RequestDelegate nextDelegate;
+	AdvancedDelegate() { } 
+	AdvancedDelegate(nextDelegate) => this.nextDelegate = nextDelegate;
+	
+	public async Task Invoke(HttpContext context)
+	{
+		await context.Response.WriteAsync("Class-based Advanced Middleware");
+		// call next if available.
+		await next?.Invoke(context); 
+	}
+}
+
+app.Map("/branch", branch => 
+{
+	// no .Use equivalent for Terminal :-(
+	branch.Run(new AdvancedMiddleware().Invoke);
+});
+
+app.UseMiddleware<AdvancedMiddleware>();
+
+//////////////////////////////////////////////////////////////////////
+// Configuring middleware
+
+// Option pattern - used by some built-in middleware components.
+// Basically, its a Dependency Register for a data struct.
+// You can call `builder.Services.Configure<TOption>`
+//  to adjust `TOption` fields
+//  before builder.Build() method call.
+
+// The middleware component asks for a IOptions<TOptions> dependency
+//  in order to get an actual options.
+
+// Make a silly options holder.
+builder.Services.Configure<Point>(pointOptions => 
+{
+	pointOptions.X = 100;
+});
+
+var app = builder.Build();
+
+app.MapGet("/", async (HttpContext context, IOptions<Point> pointOptions) =>
+{
+	// use the option provided by integrated dependency resolver.
+	var pointOpts = pointOptions.Value;
+	// see that defaults are used from above.
+	await context.Response.WriteAsync($"{pointOpts}"); // 100 0
+});
+
+
+// Making the options pattern in class-based middleware component
+//  is achieved by a simple ctor injection:
+class PointMiddleware
+{
+	RequestDelegate next;
+	Point	pointOptions;
+	
+	public PointMiddleware(
+		RequestDelegate next, 
+		IOptions<Point> pointOptions)
+	{
+		this.next = next;
+		this.pointOptions = pointOptions.Value;
+	}
+	
+	public async Task Invoke(HttpContext context)
+	{
+		await context.Response.WriteAsync($"Point: {pointOptions}"); // 100 0
+		await next(context);
+	}
+}
+
+// When the .UseMiddleware executed, 
+//  the PointMiddleware ctor is inspected
+//  and the dependency is injected
+//  from the Services.Configure registry.
+app.UseMiddleware<PointMiddleware>();
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

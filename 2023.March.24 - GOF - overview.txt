@@ -1,0 +1,63 @@
+-----------
+OOP_PROGRAM
+- consist of
+  OBJECT
+  - is 
+    INSTANCE 
+    of 
+    CLASS
+
+  - consist of
+    INNER_STATE 
+    - hidden
+    INTERFACE 
+    - contains a set of 
+      OPERATION
+      - reacts on REQUEST
+      - able to alter INNER_STATE
+      - specifies a 
+        SIGNATURE [name, object-parameters, return]
+      - implemented in
+        CLASS
+  - could be have many
+    TYPE
+-----------
+  TYPE
+  - denotes particular
+    INTERFACE
+  - could be shared among multiple
+    OBJECT
+----------- 
+  DYNAMIC_BINDING assosiates REQUEST with OPERATION
+  POLYMORPHISM Substitutes OBJECT for DYNAMIC_BINDING at RUNTIME
+-----------
+  INSTANTINATING is a way to allocate an OBJECT of specific CLASS
+-----------
+
+-----------
+- OOP_PROGRAM
+
+-- OBJECT
+-- INTERFACE
+-- REQUEST
+-- CLASS
+-- SUBTYPE
+-- TYPE
+-- INSTANTINATING
+
+--- INNER_STATE
+--- DYNAMIC_BINDING
+--- ENCAPSULATION
+--- INHERITANCE
+
+--- OPERATION
+--- POLYMORPHISM
+---- ABSTRACT_CLASS
+---- ABSTRACT_OPERATION
+---- CLASS_INHERITANCE
+---- CONCRETE_CLASS
+---- INNER_STATE
+---- INTERFACE_INHERITANCE
+---- MIXIN_CLASS
+---- OP.SIGNATURE
+---- OVERRIDE
