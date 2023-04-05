@@ -1,16 +1,21 @@
 using "2023.April.04";
 using "AdamFreeman.AspNetCore6.Chapter12"; // Understanding the ASP.NET Core platform.
 
+// The platform basis.
 1. Understanding the entry point
 2. Understanding the HttpContext
+
+// Writing Middleware Components
 3. Creating Custom Middleware
 4. Defining Middleware Using a Class
 
+// Controlling the flow.
 5. Understanding the Return Pipeline Path
 6. Short-Circuiting the Request Pipeline
 7. Creating Pipeline Branches
-8. Creating Terminal Middleware
 
+// Some fun stuff for the dessert.
+8. Creating Terminal Middleware
 9. Configuring middleware
 
 //////////////////////////////////////////////////////////////////////
@@ -140,7 +145,7 @@ app.Use(async (context, next) =>
 
 // How to interrupt the pipeline on current middleware?
 // Just dont call next()
-// So the platfrom gonna abandon further processing 
+// So the platform gonna abandon further processing 
 //  for this request 
 //  and will pop up the response immediately 
 //  (all way back to middlewares up there).
@@ -285,4 +290,4 @@ class PointMiddleware
 //  from the Services.Configure registry.
 app.UseMiddleware<PointMiddleware>();
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+<<EOF>>
