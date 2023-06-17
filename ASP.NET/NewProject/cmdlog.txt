@@ -1,0 +1,10 @@
+dotnet --list-sdks
+# 7.0.302 [/usr/share/dotnet/sdk]
+
+dotnet new globaljson --sdk-version 7.0.302
+
+dotnet new mvc --no-https
+# I am fine with default 7.0 
+dotnet add package Microsoft.EntityFrameworkCore.SqlServer --version 7.0.0
+dotnet list package
+dotnet tool install --global dotnet-ef
