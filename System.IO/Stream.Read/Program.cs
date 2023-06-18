@@ -1,105 +1,83 @@
 ﻿using System.Text;
 
-// Stream.Read v1.0
-// A student-like way to process a stream:
-// - fill a buffer in a loop, until the end;
-// - parse the buffer per iteration (extract a line);
-// - leave the rest of bytes for next iteration.
-
-/*
-    the filled buffer consist of two parts:
-    - occupied: the total amount of bytes from Read operation.
-    - processed: the amount of bytes processed by the parser.
-
-    The program works in next steps:
-    1. Fill up the buffer from a stream.
-    2. Seek the lines inside of a buffer.
-    3. Rearrange the buffer: remove processed parts.
-*/
-
-const int bufferSize = 64;
-
-var buffer = new char[bufferSize];
-var nBufferOccupied = 0;
-var nBufferProcessed = 0;
-
 using var stream = File.OpenRead("sample.txt");
 using var reader = new StreamReader(stream);
+
+const int bufferSize = 64;
+var buffer = new char[bufferSize];
 var result = new StringBuilder();
 
-while (true)
+while (await TryReadAsync(reader, buffer))
 {
-    var remaining = buffer.Length - nBufferOccupied;
-
-    // 1.
-    var bytesRead = await reader.ReadAsync(
-        buffer, 
-        nBufferOccupied,
-        remaining);
-
-    nBufferOccupied += bytesRead;   
-    
-    if (bytesRead == 0)
+    var bufferSpace = new BufferSpace(buffer.Length);
+    while (TryGetLine(buffer, bufferSpace, out var line))
     {
-        break;
-    }    
-
-    RenderOccupation(nBufferOccupied, remaining);
-
-    // 2.
-    var iDelimeter = 0;
-    while (true)
-    {
-        iDelimeter = Array.IndexOf(
-            buffer, 
-            '\n', 
-            nBufferProcessed,
-            nBufferOccupied - nBufferProcessed);
-
-        if (iDelimeter == -1)
-        {
-            break;
-        }
-
-        for (int i = nBufferProcessed; i < iDelimeter + 1; i++)
+        // result.Append(line);
+        for (int i = 0; i < line.Length; i++)
         {
             result.Append(buffer[i]);
-        }
-
-        nBufferProcessed = iDelimeter + 1;
+        }        
     }
-    
-    // 3. Rearrange the buffer.
-    var nBufferUnprocessed = buffer.Length - nBufferProcessed;
-    var newBuffer = new char[nBufferUnprocessed];
-    Array.Copy(
-        buffer,  // sourceArray
-        nBufferProcessed, // sourceIndex
-        newBuffer, // destArray
-        0, // destIndex
-        nBufferUnprocessed); // length
-
-    Array.Clear(buffer);
-    Array.Copy(newBuffer, buffer, newBuffer.Length);
-
-    nBufferOccupied = nBufferUnprocessed;
-    nBufferProcessed = 0;
+    Clear(buffer, bufferSpace);
 }
 
 Console.WriteLine(result);
 
-void RenderOccupation(decimal occupied, decimal remaining)
+async Task<bool> TryReadAsync(StreamReader reader, char[] buffer)
 {
-    const char chOccupied = '#';
-    const char chRemaining = '-';
-    var total = occupied + remaining;
-    var occupiedFraction = (byte) ((occupied / total) * 10);
-    
-    var line = Enumerable.Repeat(chRemaining, 10).ToArray();
-    for (int i = 0; i < occupiedFraction; i++)
+    var occupied = Array.IndexOf(buffer, '\0');
+    occupied = occupied == -1 ? 0 : occupied;
+    var available = buffer.Length - occupied;
+
+    var bytesRead = await reader.ReadAsync(
+        buffer,
+        occupied,
+        available);
+
+    return bytesRead != 0;
+}
+
+bool TryGetLine(char[] buffer, BufferSpace bufferSpace, out char[] line)
+{
+    var iDelimeter = Array.IndexOf(
+            buffer,
+            '\n', 
+            bufferSpace.Processed,
+            bufferSpace.Remaining);
+
+    if (iDelimeter == -1)
     {
-        line[i] = chOccupied;
+        line = new char[0];
+        return false;
     }
-    
-    Console.WriteLine(line);
+
+    var offset = iDelimeter + 1 - bufferSpace.Processed; 
+
+    line = new char[offset];
+    Array.Copy(buffer, bufferSpace.Processed, line, 0, offset);
+
+    bufferSpace.Process(offset);
+    return true;
+}
+
+void Clear(char[] buffer, BufferSpace bufferSpace)
+{
+    if (bufferSpace.Remaining is 0)
+    {
+        return;
+    }
+
+    var remainingBuffer = new char[bufferSpace.Remaining];
+    Array.Copy(
+        buffer,
+        bufferSpace.Processed,
+        remainingBuffer,
+        0,
+        bufferSpace.Remaining);
+
+    Array.Clear(buffer);    
+    Array.Copy(
+        remainingBuffer, 
+        buffer, 
+        remainingBuffer.Length);
 }
