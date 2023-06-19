@@ -1,83 +1,43 @@
-﻿using System.Text;
+﻿const char ZeroChar = '\0';
+const char NewLineChar = '\n';
+const int BufferSize = 64;
 
 using var stream = File.OpenRead("sample.txt");
 using var reader = new StreamReader(stream);
 
-const int bufferSize = 64;
-var buffer = new char[bufferSize];
-var result = new StringBuilder();
+var buffer = (Span<char>) stackalloc char[BufferSize];
 
-while (await TryReadAsync(reader, buffer))
+while (TryReadBlock(reader, buffer))
 {
-    var bufferSpace = new BufferSpace(buffer.Length);
-    while (TryGetLine(buffer, bufferSpace, out var line))
+    var chunk = buffer;
+    while (true)
     {
-        // result.Append(line);
-        for (int i = 0; i < line.Length; i++)
+        var line = ExtractLine(chunk);
+        if (line.IsEmpty)
         {
-            result.Append(buffer[i]);
-        }        
+            break;
+        }
+        chunk = chunk.Slice(line.Length);
+        Console.Write(line.ToString());
     }
-    Clear(buffer, bufferSpace);
+    
+    chunk.CopyTo(buffer);
+    buffer
+        .Slice(chunk.Length)
+        .Fill(ZeroChar);
 }
 
-Console.WriteLine(result);
-
-async Task<bool> TryReadAsync(StreamReader reader, char[] buffer)
-{
-    var occupied = Array.IndexOf(buffer, '\0');
-    occupied = occupied == -1 ? 0 : occupied;
-    var available = buffer.Length - occupied;
-
-    var bytesRead = await reader.ReadAsync(
-        buffer,
-        occupied,
-        available);
-
-    return bytesRead != 0;
-}
-
-bool TryGetLine(char[] buffer, BufferSpace bufferSpace, out char[] line)
-{
-    var iDelimeter = Array.IndexOf(
-            buffer,
-            '\n', 
-            bufferSpace.Processed,
-            bufferSpace.Remaining);
-
-    if (iDelimeter == -1)
+bool TryReadBlock(StreamReader reader, Span<char> chunk)
+    => chunk.IndexOf(ZeroChar) switch 
     {
-        line = new char[0];
-        return false;
-    }
+        -1 => throw new InternalBufferOverflowException(
+            "Buffer: no free space available."),
+        var offset => reader.ReadBlock(chunk.Slice(offset)) != 0
+    };
 
-    var offset = iDelimeter + 1 - bufferSpace.Processed; 
-
-    line = new char[offset];
-    Array.Copy(buffer, bufferSpace.Processed, line, 0, offset);
-
-    bufferSpace.Process(offset);
-    return true;
-}
-
-void Clear(char[] buffer, BufferSpace bufferSpace)
-{
-    if (bufferSpace.Remaining is 0)
+ReadOnlySpan<char> ExtractLine(ReadOnlySpan<char> buffer)
+    => buffer.IndexOf(NewLineChar) switch
     {
-        return;
-    }
-
-    var remainingBuffer = new char[bufferSpace.Remaining];
-    Array.Copy(
-        buffer,
-        bufferSpace.Processed,
-        remainingBuffer,
-        0,
-        bufferSpace.Remaining);
-
-    Array.Clear(buffer);    
-    Array.Copy(
-        remainingBuffer, 
-        buffer, 
-        remainingBuffer.Length);
-}
+        -1 => Span<char>.Empty,         
+        var end  => buffer.Slice(0, end + 1)
+    };
