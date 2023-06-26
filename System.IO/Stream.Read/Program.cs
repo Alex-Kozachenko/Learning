@@ -1,56 +1,58 @@
-﻿const char ZeroChar = '\0';
-const char NewLineChar = '\n';
+﻿using System.Buffers;
+using System.IO.Pipelines;
+
 const int BufferSize = 64;
 
 using var stream = File.OpenRead("sample.txt");
-using var reader = new StreamReader(stream);
-using var stdOut = new StreamWriter(Console.OpenStandardOutput());
-Memory<char> block = new char[BufferSize];
+var reader = PipeReader.Create(
+    stream, 
+    new StreamPipeReaderOptions(bufferSize: BufferSize));
 
-while (await TryReadBlockAsync(reader, block))
+// using var stdOut = new StreamWriter(Console.OpenStandardOutput());
+
+while (true)
 {
-    var processed = ProcessBlock(block, stdOut);
-    ResetBlock(block.Span, processed);    
-}
+    var result = await reader.ReadAsync();
+    var buffer = result.Buffer;
 
-/////////////////////////////////////////////////
-
-void ResetBlock(Span<char> block, int processed)
-{
-    var chunk = block.Slice(processed);
-    chunk.CopyTo(block);
-    block
-        .Slice(chunk.Length)
-        .Fill(ZeroChar);
-}
-
-int ProcessBlock(ReadOnlyMemory<char> block, StreamWriter stdOut)
-{
-    var chunk = block.Span;
-    while (true)
+    var consumed = ProcessBuffer(buffer, result.IsCompleted);
+    if (result.IsCompleted)
     {
-        var line = ExtractLine(chunk);
-        if (line.IsEmpty)
+        break;
+    }
+
+    reader.AdvanceTo(consumed, buffer.End);
+}
+
+reader.Complete();
+
+SequencePosition ProcessBuffer(
+    in ReadOnlySequence<byte> sequence, 
+    bool isCompleted)
+{
+    var reader = new SequenceReader<byte>(sequence);
+    while (!reader.End)
+    {
+        if (reader.TryReadTo(
+            out ReadOnlySequence<byte> token,
+            (byte)'\n', 
+            advancePastDelimiter: true))
+        {
+            var line = System.Text.Encoding.UTF8.GetString(token.ToArray());
+            Console.WriteLine(line);
+        }
+        else if (isCompleted)
+        {
+            var finalToken = sequence.Slice(reader.Position);
+            var line = System.Text.Encoding.UTF8.GetString(finalToken.ToArray());
+            Console.WriteLine(line);
+            reader.Advance(finalToken.Length);
+        }
+        else // ?
         {
             break;
         }
-        chunk = chunk.Slice(line.Length);
-        stdOut.Write(line);
     }
-    return block.Length - chunk.Length;
+
+    return reader.Position;
 }
-
-ReadOnlySpan<char> ExtractLine(ReadOnlySpan<char> buffer)
-    => buffer.IndexOf(NewLineChar) switch
-    {
-        -1 => Span<char>.Empty,         
-        var end  => buffer.Slice(0, end + 1)
-    };
-
-async Task<bool> TryReadBlockAsync(StreamReader reader, Memory<char> chunk)
-    => chunk.Span.IndexOf(ZeroChar) switch 
-    {
-        -1 => throw new InternalBufferOverflowException(
-            "Buffer: no free space available."),
-        var offset => await reader.ReadBlockAsync(chunk.Slice(offset)) != 0
-    };
