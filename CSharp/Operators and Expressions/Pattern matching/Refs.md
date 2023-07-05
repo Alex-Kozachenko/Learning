@@ -1,0 +1,3 @@
+- [Case Guards](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/selection-statements#case-guards)
+- [Patterns](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/patterns)
+- [Specs](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/patterns)
