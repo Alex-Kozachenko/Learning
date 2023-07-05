@@ -3,7 +3,7 @@
 <node TEXT="Pattern Matching" FOLDED="false" ID="ID_1002227777" CREATED="1688400710907" MODIFIED="1688400724729" STYLE="oval">
 <font SIZE="18"/>
 <hook NAME="MapStyle">
-    <properties edgeColorConfiguration="#808080ff,#ff0000ff,#0000ffff,#00ff00ff,#ff00ffff,#00ffffff,#7c0000ff,#00007cff,#007c00ff,#7c007cff,#007c7cff,#7c7c00ff" fit_to_viewport="false" show_note_icons="true"/>
+    <properties edgeColorConfiguration="#808080ff,#ff0000ff,#0000ffff,#00ff00ff,#ff00ffff,#00ffffff,#7c0000ff,#00007cff,#007c00ff,#7c007cff,#007c7cff,#7c7c00ff" show_note_icons="true" fit_to_viewport="false"/>
 
 <map_styles>
 <stylenode LOCALIZED_TEXT="styles.root_node" STYLE="oval" UNIFORM_SHAPE="true" VGAP_QUANTITY="24.0 pt">
@@ -63,7 +63,7 @@
 </stylenode>
 </map_styles>
 </hook>
-<hook NAME="AutomaticEdgeColor" COUNTER="13" RULE="ON_BRANCH_CREATION"/>
+<hook NAME="AutomaticEdgeColor" COUNTER="15" RULE="ON_BRANCH_CREATION"/>
 <node TEXT="Supported By" POSITION="right" ID="ID_540368128" CREATED="1688400740187" MODIFIED="1688400891604">
 <edge COLOR="#ff0000"/>
 <font BOLD="true"/>
@@ -91,7 +91,6 @@
     </p>
   </body>
 </html>
-
 </richcontent>
 </node>
 <node TEXT="Switch Expression" ID="ID_1020144649" CREATED="1688400750316" MODIFIED="1688400843653"><richcontent TYPE="NOTE">
@@ -118,7 +117,6 @@
     </p>
   </body>
 </html>
-
 </richcontent>
 </node>
 <node TEXT="Switch Statement" ID="ID_1754263905" CREATED="1688400755020" MODIFIED="1688400875287"><richcontent TYPE="NOTE">
@@ -145,7 +143,6 @@
     </p>
   </body>
 </html>
-
 </richcontent>
 </node>
 </node>
@@ -162,10 +159,10 @@
 <font NAME="Roboto Mono"/>
 </node>
 </node>
-<node TEXT="Pattern Kinds" POSITION="right" ID="ID_101079934" CREATED="1688400932046" MODIFIED="1688400938622">
+<node TEXT="Pattern Kinds" POSITION="right" ID="ID_101079934" CREATED="1688400932046" MODIFIED="1688549370490">
 <edge COLOR="#00007c"/>
 <font BOLD="true"/>
-<node TEXT="Spawners" ID="ID_59369721" CREATED="1688400962503" MODIFIED="1688400998193">
+<node TEXT="Assigners" ID="ID_59369721" CREATED="1688400962503" MODIFIED="1688549340502">
 <font BOLD="true"/>
 <node TEXT="declaration" ID="ID_1983198043" CREATED="1688401106535" MODIFIED="1688401276780"><richcontent TYPE="NOTE">
 
@@ -179,7 +176,6 @@
     </p>
   </body>
 </html>
-
 </richcontent>
 </node>
 <node TEXT="var" ID="ID_935547172" CREATED="1688401118792" MODIFIED="1688401337358"><richcontent TYPE="NOTE">
@@ -194,7 +190,35 @@
     </p>
   </body>
 </html>
+</richcontent>
+</node>
+<node TEXT="discard" ID="ID_211605985" CREATED="1688401035116" MODIFIED="1688401723542"><richcontent TYPE="NOTE">
 
+<html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      if (1 is var _)
+    </p>
+    <p>
+      {
+    </p>
+    <p>
+      &#160;&#160;&#160;&#160;Console.WriteLine(&quot;Who cares&quot;);
+    </p>
+    <p>
+      }
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      A discard pattern can't be a pattern in an is expression or a switch statement. In those cases, to match any expression, use a var pattern with a discard: var _.
+    </p>
+  </body>
+</html>
 </richcontent>
 </node>
 </node>
@@ -212,7 +236,6 @@
     </p>
   </body>
 </html>
-
 </richcontent>
 </node>
 <node TEXT="relational" ID="ID_1491003058" CREATED="1688401096638" MODIFIED="1688401434804"><richcontent TYPE="NOTE">
@@ -227,7 +250,6 @@
     </p>
   </body>
 </html>
-
 </richcontent>
 </node>
 <node TEXT="property" ID="ID_134654441" CREATED="1688401099407" MODIFIED="1688401456350"><richcontent TYPE="NOTE">
@@ -245,7 +267,6 @@
     </p>
   </body>
 </html>
-
 </richcontent>
 </node>
 <node TEXT="type" ID="ID_761315175" CREATED="1688401131952" MODIFIED="1688401471135"><richcontent TYPE="NOTE">
@@ -260,7 +281,6 @@
     </p>
   </body>
 </html>
-
 </richcontent>
 </node>
 </node>
@@ -293,7 +313,55 @@
     </p>
   </body>
 </html>
+</richcontent>
+</node>
+<node TEXT="property" ID="ID_511448795" CREATED="1688401054420" MODIFIED="1688401833532"><richcontent TYPE="NOTE">
 
+<html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      if (DateTime.Now is { Year: 2023 })
+    </p>
+    <p>
+      {
+    </p>
+    <p>
+      &#160;&#160;&#160;&#160;Console.WriteLine(&quot;Who cares&quot;);
+    </p>
+    <p>
+      }
+    </p>
+  </body>
+</html>
+</richcontent>
+</node>
+</node>
+<node TEXT="Paranthesized" ID="ID_17379441" CREATED="1688549361154" MODIFIED="1688549371843">
+<font BOLD="true"/>
+<node TEXT="paranthesized" ID="ID_1300680409" CREATED="1688401039603" MODIFIED="1688401783599"><richcontent TYPE="NOTE">
+
+<html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      if (1 is (var _ or int))
+    </p>
+    <p>
+      {
+    </p>
+    <p>
+      &#160;&#160;&#160;&#160;Console.WriteLine(&quot;Who cares&quot;);
+    </p>
+    <p>
+      }
+    </p>
+  </body>
+</html>
 </richcontent>
 </node>
 <node TEXT="positional (deconstruct)" ID="ID_1058348569" CREATED="1688401050524" MODIFIED="1688401955564"><richcontent TYPE="NOTE">
@@ -365,97 +433,50 @@
     </p>
   </body>
 </html>
-
-</richcontent>
-</node>
-<node TEXT="property" ID="ID_511448795" CREATED="1688401054420" MODIFIED="1688401833532"><richcontent TYPE="NOTE">
-
-<html>
-  <head>
-    
-  </head>
-  <body>
-    <p>
-      if (DateTime.Now is { Year: 2023 })
-    </p>
-    <p>
-      {
-    </p>
-    <p>
-      &#160;&#160;&#160;&#160;Console.WriteLine(&quot;Who cares&quot;);
-    </p>
-    <p>
-      }
-    </p>
-  </body>
-</html>
-
-</richcontent>
-</node>
-</node>
-<node TEXT="Extra" ID="ID_1237689594" CREATED="1688401027594" MODIFIED="1688401034739">
-<font BOLD="true"/>
-<node TEXT="discard" ID="ID_211605985" CREATED="1688401035116" MODIFIED="1688401723542"><richcontent TYPE="NOTE">
-
-<html>
-  <head>
-    
-  </head>
-  <body>
-    <p>
-      if (1 is var _)
-    </p>
-    <p>
-      {
-    </p>
-    <p>
-      &#160;&#160;&#160;&#160;Console.WriteLine(&quot;Who cares&quot;);
-    </p>
-    <p>
-      }
-    </p>
-    <p>
-      
-    </p>
-    <p>
-      A discard pattern can't be a pattern in an is expression or a switch statement. In those cases, to match any expression, use a var pattern with a discard: var _.
-    </p>
-  </body>
-</html>
-
-</richcontent>
-</node>
-<node TEXT="paranthesized" ID="ID_1300680409" CREATED="1688401039603" MODIFIED="1688401783599"><richcontent TYPE="NOTE">
-
-<html>
-  <head>
-    
-  </head>
-  <body>
-    <p>
-      if (1 is (var _ or int))
-    </p>
-    <p>
-      {
-    </p>
-    <p>
-      &#160;&#160;&#160;&#160;Console.WriteLine(&quot;Who cares&quot;);
-    </p>
-    <p>
-      }
-    </p>
-  </body>
-</html>
-
 </richcontent>
 </node>
 </node>
 </node>
-<node TEXT="Extra Keywords" POSITION="left" ID="ID_351303530" CREATED="1688401169994" MODIFIED="1688401175693">
+<node TEXT="Extended By" POSITION="left" ID="ID_351303530" CREATED="1688401169994" MODIFIED="1688551249751">
 <edge COLOR="#0000ff"/>
-<node TEXT="when" FOLDED="true" ID="ID_1346981624" CREATED="1688401176555" MODIFIED="1688401197738">
+<font BOLD="true"/>
+<node TEXT="Case guards" ID="ID_1937575463" CREATED="1688551254400" MODIFIED="1688551259280">
+<font BOLD="true"/>
+<node TEXT="when" ID="ID_1346981624" CREATED="1688401176555" MODIFIED="1688551296520">
 <font NAME="Roboto Mono"/>
-<node TEXT="???" ID="ID_514942950" CREATED="1688401181859" MODIFIED="1688401183055"/>
+<richcontent TYPE="NOTE">
+
+<html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      static Point Transform(Point point) =&gt; point switch
+    </p>
+    <p>
+      {
+    </p>
+    <p>
+      &#160;&#160;&#160;&#160;{ X: 0, Y: 0 }&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;=&gt; new Point(0, 0),
+    </p>
+    <p>
+      &#160;&#160;&#160;&#160;{ X: var x, Y: var y } when x &lt; y =&gt; new Point(x + y, y),
+    </p>
+    <p>
+      &#160;&#160;&#160;&#160;{ X: var x, Y: var y } when x &gt; y =&gt; new Point(x - y, y),
+    </p>
+    <p>
+      &#160;&#160;&#160;&#160;{ X: var x, Y: var y }&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;=&gt; new Point(2 * x, 2 * y),
+    </p>
+    <p>
+      };
+    </p>
+  </body>
+</html>
+
+</richcontent>
+</node>
 </node>
 </node>
 </node>
