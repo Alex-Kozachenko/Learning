@@ -1,7 +1,6 @@
 Blogs
 ============
 
-
 ---
 > [devblogs.microsoft.com](https://devblogs.microsoft.com)
 - [dotnet](https://devblogs.microsoft.com/dotnet/)
@@ -14,11 +13,10 @@ Blogs
 > [dotnettutorials](https://dotnettutorials.net/course/csharp-dot-net-tutorials/)
 
 ---
-> [TimCorey]https://www.youtube.com/@IAmTimCorey
+> [TimCorey](https://www.youtube.com/@IAmTimCorey)
 
 ---
-> [SteveJGordon]https://www.stevejgordon.co.uk/
-
+> [SteveJGordon](https://www.stevejgordon.co.uk/)
 
 Tools
 ============
