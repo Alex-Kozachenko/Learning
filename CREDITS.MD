@@ -13,6 +13,9 @@ Blogs
 > [dotnettutorials](https://dotnettutorials.net/course/csharp-dot-net-tutorials/)
 
 ---
+> [dotnetcurry](https://www.dotnetcurry.com)
+
+---
 > [TimCorey](https://www.youtube.com/@IAmTimCorey)
 
 ---
